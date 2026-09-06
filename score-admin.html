@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Scorekeeper · Nopson Tournament</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="scorekeeper-body">
+<header>
+  <a class="nopson-logo" href="index.html#results" aria-label="Back to tournament results"><img src="nopson-logo.svg" alt="Nopson" width="250" height="74"></a>
+  <a class="back-link" href="index.html#results">View results</a>
+</header>
+<main class="scorekeeper">
+  <section class="scorekeeper-intro">
+    <span class="eyebrow">TOURNAMENT CONTROL</span>
+    <h1>Scorekeeper.</h1>
+    <p>Update a match here and the public results page changes live.</p>
+  </section>
+
+  <section id="auth-panel" class="admin-panel">
+    <h2>Organizer sign in</h2>
+    <p>Use an approved organizer email. If this is your first visit, create an account with the same email.</p>
+    <form id="auth-form">
+      <label>Email<input id="email" type="email" autocomplete="username" required></label>
+      <label>Password<input id="password" type="password" autocomplete="current-password" minlength="8" required></label>
+      <div class="admin-actions">
+        <button type="submit">Sign in</button>
+        <button type="button" id="sign-up" class="secondary-button">Create account</button>
+      </div>
+    </form>
+    <p id="auth-message" class="admin-message" role="status"></p>
+  </section>
+
+  <section id="editor-panel" class="admin-panel" hidden>
+    <div class="admin-panel-heading">
+      <div><span class="label">SIGNED IN AS</span><strong id="signed-in-email"></strong></div>
+      <button id="sign-out" class="secondary-button">Sign out</button>
+    </div>
+    <div class="admin-filter" role="group" aria-label="Filter matches">
+      <button class="filter-button active" data-stage="all">All</button>
+      <button class="filter-button" data-stage="Group A">Group A</button>
+      <button class="filter-button" data-stage="Group B">Group B</button>
+      <button class="filter-button" data-stage="knockout">Knockouts</button>
+    </div>
+    <p id="editor-message" class="admin-message" role="status"></p>
+    <div id="match-list" class="admin-match-list"></div>
+  </section>
+</main>
+<script type="module" src="score-admin.js"></script>
+</body>
+</html>
+
