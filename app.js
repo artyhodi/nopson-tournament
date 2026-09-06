@@ -1,0 +1,5 @@
+const tabs=[...document.querySelectorAll('[role=tab]')];
+function activate(id,focus=false){if(!tabs.some(t=>t.dataset.tab===id))id='overview';tabs.forEach(t=>{const active=t.dataset.tab===id;t.setAttribute('aria-selected',String(active));t.tabIndex=active?0:-1;document.getElementById(t.dataset.tab).hidden=!active;if(active&&focus)t.focus()});history.replaceState(null,'','#'+id)}
+tabs.forEach((tab,i)=>{tab.addEventListener('click',()=>activate(tab.dataset.tab));tab.addEventListener('keydown',e=>{let index=i;if(e.key==='ArrowRight')index=(i+1)%tabs.length;else if(e.key==='ArrowLeft')index=(i+tabs.length-1)%tabs.length;else if(e.key==='Home')index=0;else if(e.key==='End')index=tabs.length-1;else return;e.preventDefault();activate(tabs[index].dataset.tab,true)})});
+document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>activate(b.dataset.go,true)));
+window.addEventListener('hashchange',()=>activate(location.hash.slice(1)));activate(location.hash.slice(1)||'overview');
