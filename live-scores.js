@@ -29,6 +29,60 @@ function scorePair(match, side, suffix) {
   return [own, other];
 }
 
+function fallbackTieCompare(a, b) {
+  const aTotal = a.gamesFor + a.gamesAgainst;
+  const bTotal = b.gamesFor + b.gamesAgainst;
+  const aWinPct = aTotal ? a.gamesFor / aTotal : 0;
+  const bWinPct = bTotal ? b.gamesFor / bTotal : 0;
+  return bWinPct - aWinPct
+    || (b.gamesFor - b.gamesAgainst) - (a.gamesFor - a.gamesAgainst)
+    || b.gamesFor - a.gamesFor
+    || a.slotNumber - b.slotNumber;
+}
+
+function finalTieEqual(a, b) {
+  const aTotal = a.gamesFor + a.gamesAgainst;
+  const bTotal = b.gamesFor + b.gamesAgainst;
+  const aWinPct = aTotal ? a.gamesFor / aTotal : 0;
+  const bWinPct = bTotal ? b.gamesFor / bTotal : 0;
+  return aWinPct === bWinPct
+    && a.gamesFor - a.gamesAgainst === b.gamesFor - b.gamesAgainst
+    && a.gamesFor === b.gamesFor;
+}
+
+function rankGroup(groupCode, teams, byId) {
+  const byWins = new Map();
+  teams.forEach((team) => {
+    if (!byWins.has(team.won)) byWins.set(team.won, []);
+    byWins.get(team.won).push(team);
+  });
+
+  const ranked = [];
+  let randomDrawRequired = false;
+  [...byWins.keys()].sort((a, b) => b - a).forEach((wins) => {
+    const tied = byWins.get(wins);
+    if (tied.length === 2) {
+      const [first, second] = tied;
+      const id = `${groupCode}${Math.min(first.slotNumber, second.slotNumber)}-${groupCode}${Math.max(first.slotNumber, second.slotNumber)}`;
+      const headToHead = byId.get(id);
+      if (headToHead?.status === 'Completed' && headToHead.winner) {
+        const winningSlot = headToHead.winner === 1
+          ? Number(headToHead.match_id[1])
+          : Number(headToHead.match_id[4]);
+        tied.sort((a, b) => Number(b.slotNumber === winningSlot) - Number(a.slotNumber === winningSlot));
+      } else {
+        tied.sort(fallbackTieCompare);
+      }
+    } else if (tied.length >= 3) {
+      tied.sort(fallbackTieCompare);
+      randomDrawRequired ||= tied.some((team, index) => index > 0 && finalTieEqual(tied[index - 1], team));
+    }
+    ranked.push(...tied);
+  });
+
+  return { ranked, randomDrawRequired };
+}
+
 function render(rows) {
   matches = rows;
   const byId = new Map(rows.map((match) => [match.match_id, match]));
@@ -54,7 +108,7 @@ function render(rows) {
     });
     row.children[2].textContent = `${won} – ${lost}`;
     row.children[3].textContent = `${gamesFor} – ${gamesAgainst}`;
-    standingsByGroup[group].push({ row, gamesFor, slotNumber: number });
+    standingsByGroup[group].push({ row, won, gamesFor, gamesAgainst, slotNumber: number });
     entries.forEach((entry, index) => {
       if (!entry) return;
       const { match, side, scores } = entry;
@@ -66,10 +120,11 @@ function render(rows) {
     });
   }
 
-  for (const group of Object.values(standingsByGroup)) {
-    group
-      .sort((a, b) => b.gamesFor - a.gamesFor || a.slotNumber - b.slotNumber)
-      .forEach(({ row }) => row.parentElement.append(row));
+  const randomDrawGroups = [];
+  for (const [groupCode, group] of Object.entries(standingsByGroup)) {
+    const result = rankGroup(groupCode, group, byId);
+    result.ranked.forEach(({ row }) => row.parentElement.append(row));
+    if (result.randomDrawRequired) randomDrawGroups.push(`Group ${groupCode}`);
   }
 
   for (const card of document.querySelectorAll('.playoff-card')) {
@@ -96,7 +151,10 @@ function render(rows) {
       : rows.some((match) => match.status === 'Completed') ? 'IN PROGRESS' : 'NOT STARTED';
 
   const latest = rows.reduce((date, match) => Math.max(date, Date.parse(match.updated_at)), 0);
-  notice.textContent = `Live scores connected · Last change ${new Date(latest).toLocaleString('en-GB', { timeZone: 'Asia/Seoul' })} KST`;
+  const drawNotice = randomDrawGroups.length
+    ? ` · Organizer-supervised random draw required: ${randomDrawGroups.join(', ')}`
+    : '';
+  notice.textContent = `Live scores connected · Last change ${new Date(latest).toLocaleString('en-GB', { timeZone: 'Asia/Seoul' })} KST${drawNotice}`;
 }
 
 async function loadScores() {
