@@ -32,6 +32,7 @@ function scorePair(match, side, suffix) {
 function render(rows) {
   matches = rows;
   const byId = new Map(rows.map((match) => [match.match_id, match]));
+  const standingsByGroup = { A: [], B: [] };
   for (const row of document.querySelectorAll('#results tbody tr')) {
     const slot = row.querySelector('.slot-badge').textContent.trim();
     const group = slot[0], number = Number(slot[1]);
@@ -53,6 +54,7 @@ function render(rows) {
     });
     row.children[2].textContent = `${won} – ${lost}`;
     row.children[3].textContent = `${gamesFor} – ${gamesAgainst}`;
+    standingsByGroup[group].push({ row, gamesFor, slotNumber: number });
     entries.forEach((entry, index) => {
       if (!entry) return;
       const { match, side, scores } = entry;
@@ -62,6 +64,12 @@ function render(rows) {
         ? (match.winner === side + 1 ? '#d8edc8' : '#f4dddd')
         : '#e9ece3';
     });
+  }
+
+  for (const group of Object.values(standingsByGroup)) {
+    group
+      .sort((a, b) => b.gamesFor - a.gamesFor || a.slotNumber - b.slotNumber)
+      .forEach(({ row }) => row.parentElement.append(row));
   }
 
   for (const card of document.querySelectorAll('.playoff-card')) {
