@@ -44,15 +44,8 @@ function renderMatches() {
         ${scoreInput(match, 'team_2_set_1', knockout ? 'Team 2 · Set 1' : 'Team 2')}
         ${knockout ? scoreInput(match, 'team_1_set_2', 'Team 1 · Set 2') + scoreInput(match, 'team_2_set_2', 'Team 2 · Set 2') + scoreInput(match, 'team_1_tiebreak', 'Team 1 · TB') + scoreInput(match, 'team_2_tiebreak', 'Team 2 · TB') : ''}
       </div>
-      <div class="match-controls">
-        <label>Status<select name="status">
-          ${['Not started','Live','Completed'].map(status => `<option ${match.status === status ? 'selected' : ''}>${status}</option>`).join('')}
-        </select></label>
-        <label>Winner<select name="winner">
-          <option value="" ${match.winner == null ? 'selected' : ''}>Not decided</option>
-          <option value="1" ${match.winner === 1 ? 'selected' : ''}>Team 1</option>
-          <option value="2" ${match.winner === 2 ? 'selected' : ''}>Team 2</option>
-        </select></label>
+      <div class="match-controls score-only">
+        <span class="auto-outcome">Winner calculated automatically</span>
         <button type="submit">Save score</button>
       </div>
       <p class="save-state" role="status"></p>
@@ -132,12 +125,6 @@ async function saveMatch(event) {
   const state = form.querySelector('.save-state');
   const values = Object.fromEntries(new FormData(form));
   const number = (field) => Number.parseInt(values[field], 10);
-  const status = values.status;
-  const winner = values.winner ? Number(values.winner) : null;
-  if (status === 'Completed' && !winner) {
-    setMessage(state, 'Choose a winner before completing the match.', true);
-    return;
-  }
   const update = {
     team_1_set_1: number('team_1_set_1'),
     team_2_set_1: number('team_2_set_1'),
@@ -145,8 +132,6 @@ async function saveMatch(event) {
     team_2_set_2: values.team_2_set_2 == null ? 0 : number('team_2_set_2'),
     team_1_tiebreak: values.team_1_tiebreak == null ? 0 : number('team_1_tiebreak'),
     team_2_tiebreak: values.team_2_tiebreak == null ? 0 : number('team_2_tiebreak'),
-    status,
-    winner: status === 'Completed' ? winner : null,
   };
   setMessage(state, 'Saving…');
   const { data, error } = await supabase.from('tournament_matches').update(update).eq('match_id', form.dataset.matchId).select().single();
