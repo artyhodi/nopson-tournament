@@ -10,8 +10,11 @@ const editorPanel = document.querySelector('#editor-panel');
 const authMessage = document.querySelector('#auth-message');
 const editorMessage = document.querySelector('#editor-message');
 const matchList = document.querySelector('#match-list');
+const retryLoadButton = document.querySelector('#retry-load');
+const MATCH_CACHE_KEY = 'nopson-scorekeeper-matches-v1';
 let matches = [];
 let activeStage = 'all';
+let shownSession = 'unknown';
 
 function setMessage(element, message, error = false) {
   element.textContent = message;
@@ -59,16 +62,68 @@ function renderMatches() {
   for (const form of matchList.querySelectorAll('form')) form.addEventListener('submit', saveMatch);
 }
 
-async function loadMatches() {
-  setMessage(editorMessage, 'Loading matches…');
-  const { data, error } = await supabase.from('tournament_matches').select('*').order('sort_order');
-  if (error) {
-    setMessage(editorMessage, error.message.includes('permission') ? 'This email is not approved as a scorekeeper.' : error.message, true);
-    return;
+function readCachedMatches() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(MATCH_CACHE_KEY));
+    return Array.isArray(cached) ? cached : [];
+  } catch {
+    return [];
   }
-  matches = data;
-  renderMatches();
-  setMessage(editorMessage, 'Scores are live. Save only after checking both teams.');
+}
+
+function cacheMatches() {
+  try {
+    localStorage.setItem(MATCH_CACHE_KEY, JSON.stringify(matches));
+  } catch {
+    // Storage may be unavailable in private browsing; live loading still works.
+  }
+}
+
+async function fetchMatches(timeoutMs = 8000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await supabase
+      .from('tournament_matches')
+      .select('*')
+      .order('sort_order')
+      .abortSignal(controller.signal);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function loadMatches() {
+  retryLoadButton.hidden = true;
+  setMessage(editorMessage, matches.length ? 'Refreshing matches…' : 'Loading matches…');
+
+  let lastError;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const { data, error } = await fetchMatches();
+      if (error) throw error;
+      matches = data;
+      renderMatches();
+      cacheMatches();
+      setMessage(editorMessage, 'Scores are live. Save only after checking both teams.');
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 700));
+    }
+  }
+
+  const permissionError = lastError?.message?.includes('permission');
+  setMessage(
+    editorMessage,
+    permissionError
+      ? 'This email is not approved as a scorekeeper.'
+      : matches.length
+        ? 'Connection is slow. Showing the last loaded scores.'
+        : 'Could not load matches. Check the connection and try again.',
+    true
+  );
+  retryLoadButton.hidden = permissionError;
 }
 
 async function saveMatch(event) {
@@ -100,15 +155,29 @@ async function saveMatch(event) {
     return;
   }
   matches = matches.map(match => match.match_id === data.match_id ? data : match);
+  cacheMatches();
   setMessage(state, `Saved at ${new Date(data.updated_at).toLocaleTimeString('en-GB', { timeZone: 'Asia/Seoul' })} KST`);
 }
 
 async function showSession(session) {
+  const sessionKey = session?.user?.id ?? 'signed-out';
+  if (sessionKey === shownSession) return;
+  shownSession = sessionKey;
+
   authPanel.hidden = Boolean(session);
   editorPanel.hidden = !session;
   if (session) {
     document.querySelector('#signed-in-email').textContent = session.user.email;
+    const cached = readCachedMatches();
+    if (cached.length) {
+      matches = cached;
+      renderMatches();
+      setMessage(editorMessage, 'Showing saved matches while connecting…');
+    }
     await loadMatches();
+  } else {
+    matches = [];
+    matchList.innerHTML = '';
   }
 }
 
@@ -140,7 +209,16 @@ document.querySelectorAll('.filter-button').forEach(button => button.addEventLis
   renderMatches();
 }));
 
-supabase.auth.onAuthStateChange((_event, session) => showSession(session));
-const { data: { session } } = await supabase.auth.getSession();
-await showSession(session);
+retryLoadButton.addEventListener('click', () => loadMatches());
+
+supabase.auth.onAuthStateChange((_event, session) => {
+  // Supabase calls inside this callback can deadlock the auth client.
+  // Defer all database work until the callback has returned.
+  setTimeout(() => {
+    showSession(session).catch(() => {
+      setMessage(editorMessage, 'Could not initialize the scorekeeper. Try again.', true);
+      retryLoadButton.hidden = false;
+    });
+  }, 0);
+});
 
