@@ -32,3 +32,13 @@
 .retry-load{margin-top:10px}
 
 .flag-emoji{display:inline-block;width:1em;height:1em;margin:0 .12em 0 .24em;vertical-align:-.14em;object-fit:contain;line-height:1;flex:none}
+
+/* Keep location and year intentionally aligned beside the logo. */
+header .edition{display:flex;align-items:center;flex-shrink:0}
+header .edition .edition-location,header .edition .edition-year{padding:0;color:inherit;white-space:nowrap}
+@media(max-width:560px){
+  body>header{gap:16px}
+  body>header .nopson-logo{width:clamp(130px,42vw,180px);transform:none;margin-right:0;flex-shrink:1;min-width:0}
+  header .edition{max-width:none;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:4px;font-size:10px;letter-spacing:1.2px;line-height:1.4;text-align:right}
+  header .edition .edition-divider{display:none}
+}
