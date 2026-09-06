@@ -142,6 +142,16 @@ async function saveMatch(event) {
   matches = matches.map(match => match.match_id === data.match_id ? data : match);
   cacheMatches();
   setMessage(state, `Saved at ${new Date(data.updated_at).toLocaleTimeString('en-GB', { timeZone: 'Asia/Seoul' })} KST`);
+
+  if (data.match_id === 'SF1' || data.match_id === 'SF2') {
+    const { data: refreshed, error: refreshError } = await fetchMatches();
+    if (!refreshError) {
+      matches = refreshed;
+      renderMatches();
+      cacheMatches();
+      setMessage(editorMessage, 'Semifinal saved. Final and third-place teams updated automatically.');
+    }
+  }
 }
 
 async function showSession(session) {
