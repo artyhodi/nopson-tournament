@@ -1,27 +1,110 @@
-(()=>{
-const endpoint='https://raw.githubusercontent.com/artyhodi/nopson-tournament/main/scores.json';
-const notice=document.createElement('p');notice.className='section-intro';notice.setAttribute('role','status');notice.textContent='Checking score sync…';document.querySelector('#results .section-heading').after(notice);
-let lastGood=null;
-const rounds={1:[2,3,4],2:[1,4,3],3:[4,1,2],4:[3,2,1]};
-function render(data){
-if(data.schema!==1||!Array.isArray(data.matches)||data.matches.length!==16)throw Error('Invalid score feed');
-const byId=new Map(data.matches.map(m=>[m.id,m]));
-for(const row of document.querySelectorAll('#results tbody tr')){
-const slot=row.querySelector('.slot-badge').textContent.trim(),group=slot[0],n=Number(slot[1]);let won=0,lost=0,gf=0,ga=0;
-const entries=rounds[n].map(opp=>{const id=group+Math.min(n,opp)+'-'+group+Math.max(n,opp),m=byId.get(id);if(!m)throw Error('Missing fixture');const side=n<opp?0:1;const scores=m.scores[0];if(m.status==='Completed'){const win=m.winner===`Team ${side+1}`;won+=Number(win);lost+=Number(!win);gf+=scores[side];ga+=scores[1-side];}return {m,side,scores};});
-row.children[2].textContent=`${won} – ${lost}`;row.children[3].textContent=`${gf} – ${ga}`;
-entries.forEach(({m,side,scores},i)=>{const badge=row.children[4+i].querySelector('.zero-score');badge.textContent=`${scores[side]}:${scores[1-side]}${m.status==='Live'?' · Live':''}`;badge.style.background=m.status==='Completed'?(m.winner===`Team ${side+1}`?'#d8edc8':'#f4dddd'):'#e9ece3';});
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm';
+
+const supabaseUrl = 'https://btqoyjaaurkwyojudyei.supabase.co';
+const supabaseKey = 'sb_publishable_v70fZigwPbN_XlcTGywLgg_oHT8PkjN';
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+});
+
+const notice = document.createElement('p');
+notice.className = 'section-intro';
+notice.setAttribute('role', 'status');
+notice.textContent = 'Connecting to live scores…';
+document.querySelector('#results .section-heading').after(notice);
+
+const rounds = { 1: [2, 3, 4], 2: [1, 4, 3], 3: [4, 1, 2], 4: [3, 2, 1] };
+let matches = [];
+
+function scorePair(match, side, suffix) {
+  const own = match[`team_${side + 1}_${suffix}`];
+  const other = match[`team_${side === 0 ? 2 : 1}_${suffix}`];
+  return [own, other];
 }
-for(const card of document.querySelectorAll('.playoff-card')){
-const title=card.querySelector('h4').firstChild.textContent.trim();const id={'Semifinal 1':'SF1','Semifinal 2':'SF2','Final':'FINAL','Third-place match':'THIRD'}[title];const m=byId.get(id);if(!m)continue;
-const sides=[...card.children].filter(e=>e.tagName==='DIV');sides.forEach((e,i)=>{const score=m.scores.map((s,j)=>`${j===2?'TB ':''}${s[i]}`).join(' / ');e.textContent=`${i===0?m.team1:m.team2} — ${score}`;e.style.fontWeight=m.status==='Completed'&&m.winner===`Team ${i+1}`?'800':'500';});
-card.setAttribute('aria-label',`${title}: ${m.status}`);
+
+function render(rows) {
+  matches = rows;
+  const byId = new Map(rows.map((match) => [match.match_id, match]));
+  for (const row of document.querySelectorAll('#results tbody tr')) {
+    const slot = row.querySelector('.slot-badge').textContent.trim();
+    const group = slot[0], number = Number(slot[1]);
+    let won = 0, lost = 0, gamesFor = 0, gamesAgainst = 0;
+    const entries = rounds[number].map((opponent) => {
+      const id = `${group}${Math.min(number, opponent)}-${group}${Math.max(number, opponent)}`;
+      const match = byId.get(id);
+      if (!match) return null;
+      const side = number < opponent ? 0 : 1;
+      const scores = scorePair(match, side, 'set_1');
+      if (match.status === 'Completed') {
+        const isWinner = match.winner === side + 1;
+        won += Number(isWinner);
+        lost += Number(!isWinner);
+        gamesFor += scores[0];
+        gamesAgainst += scores[1];
+      }
+      return { match, side, scores };
+    });
+    row.children[2].textContent = `${won} – ${lost}`;
+    row.children[3].textContent = `${gamesFor} – ${gamesAgainst}`;
+    entries.forEach((entry, index) => {
+      if (!entry) return;
+      const { match, side, scores } = entry;
+      const badge = row.children[4 + index].querySelector('.zero-score');
+      badge.textContent = `${scores[0]}:${scores[1]}${match.status === 'Live' ? ' · Live' : ''}`;
+      badge.style.background = match.status === 'Completed'
+        ? (match.winner === side + 1 ? '#d8edc8' : '#f4dddd')
+        : '#e9ece3';
+    });
+  }
+
+  for (const card of document.querySelectorAll('.playoff-card')) {
+    const title = card.querySelector('h4').firstChild.textContent.trim();
+    const id = { 'Semifinal 1': 'SF1', 'Semifinal 2': 'SF2', Final: 'FINAL', 'Third-place match': 'THIRD' }[title];
+    const match = byId.get(id);
+    if (!match) continue;
+    const sides = [...card.children].filter((element) => element.tagName === 'DIV');
+    sides.forEach((element, side) => {
+      const set1 = scorePair(match, side, 'set_1')[0];
+      const set2 = scorePair(match, side, 'set_2')[0];
+      const tiebreak = scorePair(match, side, 'tiebreak')[0];
+      element.textContent = `${side === 0 ? match.team_1 : match.team_2} — ${set1} / ${set2} / TB ${tiebreak}`;
+      element.style.fontWeight = match.status === 'Completed' && match.winner === side + 1 ? '800' : '500';
+    });
+    card.setAttribute('aria-label', `${title}: ${match.status}`);
+  }
+
+  const tag = document.querySelector('#results .tag');
+  tag.textContent = rows.some((match) => match.status === 'Live')
+    ? 'LIVE'
+    : rows.every((match) => match.status === 'Completed')
+      ? 'COMPLETED'
+      : rows.some((match) => match.status === 'Completed') ? 'IN PROGRESS' : 'NOT STARTED';
+
+  const latest = rows.reduce((date, match) => Math.max(date, Date.parse(match.updated_at)), 0);
+  notice.textContent = `Live scores connected · Last change ${new Date(latest).toLocaleString('en-GB', { timeZone: 'Asia/Seoul' })} KST`;
 }
-const tag=document.querySelector('#results .tag');tag.textContent=data.matches.some(m=>m.status==='Live')?'LIVE':data.matches.every(m=>m.status==='Completed')?'COMPLETED':data.matches.some(m=>m.status==='Completed')?'IN PROGRESS':'NOT STARTED';
-const intro=document.querySelector('#results .section-intro:not([role])');if(intro)intro.textContent='Matches and game totals count completed group matches. Round scores show live progress. Table order follows team slots; it is not a ranking.';
-const date=new Date(data.syncedAt);if(!Number.isFinite(date.getTime()))throw Error('Invalid timestamp');lastGood=date;
-notice.textContent=`Last Notion sync: ${date.toLocaleString('en-GB',{timeZone:'Asia/Seoul'})} KST. Updates approximately every 5 minutes; delays are possible.${Date.now()-date>15*60*1000?' Scores may be out of date.':''}`;
+
+async function loadScores() {
+  const { data, error } = await supabase.from('tournament_matches').select('*').order('sort_order');
+  if (error) throw error;
+  render(data);
 }
-async function refresh(){try{const response=await fetch(endpoint+'?t='+Math.floor(Date.now()/30000),{cache:'no-store',signal:AbortSignal.timeout(12000)});if(!response.ok)throw Error('Unavailable');render(await response.json());}catch{notice.textContent=lastGood?'Score sync unavailable. Showing the last received scores.':'Automatic score sync is not connected yet. Displayed scores are starting values.';}}
-refresh();setInterval(()=>{if(!document.hidden)refresh();},30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
-})();
+
+loadScores().catch(() => {
+  notice.textContent = 'Live score connection is temporarily unavailable. Displayed scores are starting values.';
+});
+
+supabase
+  .channel('tournament-score-changes')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'tournament_matches' }, () => {
+    loadScores().catch(() => {});
+  })
+  .subscribe((status) => {
+    if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+      notice.textContent = 'Live updates paused. Refresh the page to load the latest scores.';
+    }
+  });
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) loadScores().catch(() => {});
+});
+
