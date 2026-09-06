@@ -196,6 +196,13 @@ function render(rows) {
     card.setAttribute('aria-label', `${title}: ${match.status}`);
   }
 
+  for (const agenda of document.querySelectorAll('#order-of-play [data-match-id]')) {
+    const match = byId.get(agenda.dataset.matchId);
+    if (!match) continue;
+    const title = agenda.querySelector('h4');
+    title.textContent = `${match.team_1} vs ${match.team_2}`;
+  }
+
   const tag = document.querySelector('#results .tag');
   tag.textContent = rows.some((match) => match.status === 'Live')
     ? 'LIVE'
