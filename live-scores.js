@@ -83,6 +83,41 @@ function rankGroup(groupCode, teams, byId) {
   return { ranked, randomDrawRequired };
 }
 
+const TEAM_MEMBERS = {
+  'NOPSON TEAM': 'Lia 🇮🇩 · Sony 🇮🇩',
+  'SJ TEAM': 'Sowoon 🇰🇷 · Jaehwan 🇰🇷',
+  'LOOFAH TEAM': 'Fati 🇰🇷 · Lucas 🇰🇷',
+  '은아재선 TEAM': '류은아 🇰🇷 · 이재선 🇰🇷',
+  'KILLER TEAM': 'Joe 🇰🇷 · Anna 🇰🇷',
+  'RAWR TEAM': 'Susy 🇲🇽 · Juma 🇦🇪',
+  'DS TEAM': 'Daniel 🇪🇸 · Sharon 🇰🇷',
+  'ML TEAM': 'Matt 🇺🇸 · Little 🇹🇭',
+};
+
+function renderKnockoutTeam(element, teamName, scores, isWinner) {
+  element.className = `knockout-score-row${isWinner ? ' is-winner' : ''}`;
+  element.textContent = '';
+  const team = document.createElement('span');
+  team.className = 'knockout-team-info';
+  const name = document.createElement('strong');
+  name.className = 'knockout-team-name';
+  name.textContent = teamName;
+  team.append(name);
+  if (TEAM_MEMBERS[teamName]) {
+    const members = document.createElement('small');
+    members.textContent = TEAM_MEMBERS[teamName];
+    team.append(members);
+  }
+  element.append(team);
+  scores.forEach((score, index) => {
+    const value = document.createElement('strong');
+    value.className = 'knockout-set-score';
+    value.setAttribute('aria-label', index === 2 ? `Tiebreak: ${score}` : `Set ${index + 1}: ${score}`);
+    value.textContent = score;
+    element.append(value);
+  });
+}
+
 function render(rows) {
   matches = rows;
   const byId = new Map(rows.map((match) => [match.match_id, match]));
@@ -132,13 +167,31 @@ function render(rows) {
     const id = { 'Semifinal 1': 'SF1', 'Semifinal 2': 'SF2', Final: 'FINAL', 'Third-place match': 'THIRD' }[title];
     const match = byId.get(id);
     if (!match) continue;
-    const sides = [...card.children].filter((element) => element.tagName === 'DIV');
+
+    let scoreHead = card.querySelector('.knockout-score-head');
+    if (!scoreHead) {
+      scoreHead = document.createElement('div');
+      scoreHead.className = 'knockout-score-head';
+      scoreHead.innerHTML = '<span>Team / players</span><span>Set 1</span><span>Set 2</span><span>TB</span>';
+      const firstSide = [...card.children].find((element) => element.tagName === 'DIV');
+      card.insertBefore(scoreHead, firstSide);
+    }
+
+    const sides = [...card.children].filter(
+      (element) => element.tagName === 'DIV' && !element.classList.contains('knockout-score-head')
+    );
     sides.forEach((element, side) => {
-      const set1 = scorePair(match, side, 'set_1')[0];
-      const set2 = scorePair(match, side, 'set_2')[0];
-      const tiebreak = scorePair(match, side, 'tiebreak')[0];
-      element.textContent = `${side === 0 ? match.team_1 : match.team_2} — ${set1} / ${set2} / TB ${tiebreak}`;
-      element.style.fontWeight = match.status === 'Completed' && match.winner === side + 1 ? '800' : '500';
+      const scores = [
+        scorePair(match, side, 'set_1')[0],
+        scorePair(match, side, 'set_2')[0],
+        scorePair(match, side, 'tiebreak')[0],
+      ];
+      renderKnockoutTeam(
+        element,
+        side === 0 ? match.team_1 : match.team_2,
+        scores,
+        match.status === 'Completed' && match.winner === side + 1
+      );
     });
     card.setAttribute('aria-label', `${title}: ${match.status}`);
   }
