@@ -42,3 +42,7 @@ header .edition .edition-location,header .edition .edition-year{padding:0;color:
   header .edition{max-width:none;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:4px;font-size:10px;letter-spacing:1.2px;line-height:1.4;text-align:right}
   header .edition .edition-divider{display:none}
 }
+
+.score-only{display:flex;align-items:center;justify-content:flex-end;gap:14px}
+.auto-outcome{margin-right:auto;color:#68705f;font-size:13px;font-weight:700}
+@media(max-width:640px){.score-only{display:flex;align-items:stretch;flex-direction:column}.score-only button{width:100%}.auto-outcome{margin-right:0}}
