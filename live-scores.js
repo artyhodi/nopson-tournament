@@ -14,6 +14,14 @@ document.querySelector('#results .section-heading').after(notice);
 
 const rounds = { 1: [2, 3, 4], 2: [1, 4, 3], 3: [4, 1, 2], 4: [3, 2, 1] };
 let matches = [];
+let hasSubscribed = false;
+let lastReconciledAt = 0;
+
+const SCORE_COLUMNS = [
+  'match_id', 'stage', 'round_number', 'team_1', 'team_2', 'court',
+  'team_1_set_1', 'team_2_set_1', 'team_1_set_2', 'team_2_set_2',
+  'team_1_tiebreak', 'team_2_tiebreak', 'status', 'winner', 'sort_order', 'updated_at',
+].join(',');
 
 function scorePair(match, side, suffix) {
   const own = match[`team_${side + 1}_${suffix}`];
@@ -84,9 +92,26 @@ function render(rows) {
 }
 
 async function loadScores() {
-  const { data, error } = await supabase.from('tournament_matches').select('*').order('sort_order');
+  const { data, error } = await supabase
+    .from('tournament_matches')
+    .select(SCORE_COLUMNS)
+    .order('sort_order');
   if (error) throw error;
+  lastReconciledAt = Date.now();
   render(data);
+}
+
+function applyRealtimeChange(payload) {
+  if (payload.eventType === 'DELETE') {
+    matches = matches.filter((match) => match.match_id !== payload.old.match_id);
+  } else {
+    const changed = payload.new;
+    const index = matches.findIndex((match) => match.match_id === changed.match_id);
+    if (index === -1) matches.push(changed);
+    else matches[index] = { ...matches[index], ...changed };
+  }
+  matches.sort((a, b) => a.sort_order - b.sort_order);
+  render(matches);
 }
 
 loadScores().catch(() => {
@@ -95,16 +120,21 @@ loadScores().catch(() => {
 
 supabase
   .channel('tournament-score-changes')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'tournament_matches' }, () => {
-    loadScores().catch(() => {});
-  })
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'tournament_matches' }, applyRealtimeChange)
   .subscribe((status) => {
-    if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-      notice.textContent = 'Live updates paused. Refresh the page to load the latest scores.';
+    if (status === 'SUBSCRIBED') {
+      if (hasSubscribed) loadScores().catch(() => {});
+      hasSubscribed = true;
+      return;
+    }
+    if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+      notice.textContent = 'Reconnecting to live scores…';
     }
   });
 
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) loadScores().catch(() => {});
+  if (!document.hidden && Date.now() - lastReconciledAt > 15000) {
+    loadScores().catch(() => {});
+  }
 });
 
