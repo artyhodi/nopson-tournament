@@ -1,5 +1,5 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm';
-import { groupFixtures, renderTournamentContent, teamMembersByName } from './tournament-data.js?v=20260912-titi-flag';
+import { groupFixtures, renderTournamentContent, teamMembersByName } from './tournament-data.js?v=20260912-group-swap';
 
 renderTournamentContent();
 
