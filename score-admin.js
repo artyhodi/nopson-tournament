@@ -11,7 +11,7 @@ const authMessage = document.querySelector('#auth-message');
 const editorMessage = document.querySelector('#editor-message');
 const matchList = document.querySelector('#match-list');
 const retryLoadButton = document.querySelector('#retry-load');
-const MATCH_CACHE_KEY = 'nopson-scorekeeper-matches-v2';
+const MATCH_CACHE_KEY = 'nopson-scorekeeper-matches-v3';
 let matches = [];
 let activeStage = 'all';
 let shownSession = 'unknown';
@@ -33,16 +33,16 @@ function scoreInput(match, field, label) {
 
 function renderMatches() {
   matchList.innerHTML = matches.filter(matchVisible).map((match) => {
-    const knockout = !match.stage.startsWith('Group');
+    const final = match.stage === 'Final';
     return `<form class="admin-match" data-match-id="${match.match_id}">
       <div class="admin-match-heading">
         <div><span class="label">${match.stage}${match.round_number ? ` · ROUND ${match.round_number}` : ''}</span><h2>${match.team_1}<small>vs</small>${match.team_2}</h2></div>
         <span class="court-pill">Court ${match.court}</span>
       </div>
       <div class="score-grid">
-        ${scoreInput(match, 'team_1_set_1', knockout ? 'Team 1 · Set 1' : 'Team 1')}
-        ${scoreInput(match, 'team_2_set_1', knockout ? 'Team 2 · Set 1' : 'Team 2')}
-        ${knockout ? scoreInput(match, 'team_1_set_2', 'Team 1 · Set 2') + scoreInput(match, 'team_2_set_2', 'Team 2 · Set 2') + scoreInput(match, 'team_1_tiebreak', 'Team 1 · TB') + scoreInput(match, 'team_2_tiebreak', 'Team 2 · TB') : ''}
+        ${scoreInput(match, 'team_1_set_1', final ? 'Team 1 · Set 1' : 'Team 1')}
+        ${scoreInput(match, 'team_2_set_1', final ? 'Team 2 · Set 1' : 'Team 2')}
+        ${final ? scoreInput(match, 'team_1_set_2', 'Team 1 · Set 2') + scoreInput(match, 'team_2_set_2', 'Team 2 · Set 2') + scoreInput(match, 'team_1_set_3', 'Team 1 · Set 3') + scoreInput(match, 'team_2_set_3', 'Team 2 · Set 3') : ''}
       </div>
       <div class="match-controls score-only">
         <span class="auto-outcome">Winner calculated automatically</span>
@@ -130,8 +130,10 @@ async function saveMatch(event) {
     team_2_set_1: number('team_2_set_1'),
     team_1_set_2: values.team_1_set_2 == null ? 0 : number('team_1_set_2'),
     team_2_set_2: values.team_2_set_2 == null ? 0 : number('team_2_set_2'),
-    team_1_tiebreak: values.team_1_tiebreak == null ? 0 : number('team_1_tiebreak'),
-    team_2_tiebreak: values.team_2_tiebreak == null ? 0 : number('team_2_tiebreak'),
+    team_1_set_3: values.team_1_set_3 == null ? 0 : number('team_1_set_3'),
+    team_2_set_3: values.team_2_set_3 == null ? 0 : number('team_2_set_3'),
+    team_1_tiebreak: 0,
+    team_2_tiebreak: 0,
   };
   setMessage(state, 'Saving…');
   const { data, error } = await supabase.from('tournament_matches').update(update).eq('match_id', form.dataset.matchId).select().single();

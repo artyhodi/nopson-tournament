@@ -48,7 +48,7 @@ header .edition .edition-location,header .edition .edition-year{padding:0;color:
 @media(max-width:640px){.score-only{display:flex;align-items:stretch;flex-direction:column}.score-only button{width:100%}.auto-outcome{margin-right:0}}
 
 /* Compact knockout scoreboard inspired by professional match cards. */
-.playoff-card>.knockout-score-head,.playoff-card>.knockout-score-row{display:grid;grid-template-columns:minmax(0,1fr) repeat(3,48px);padding:0}
+.playoff-card>.knockout-score-head,.playoff-card>.knockout-score-row{display:grid;grid-template-columns:minmax(0,1fr) repeat(var(--score-columns,1),48px);padding:0}
 .playoff-card>.knockout-score-head{background:#f0f1ed;color:#697061;border-top:1px solid #d6ddcc;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
 .knockout-score-head>span{padding:8px 6px;text-align:center}
 .knockout-score-head>span:first-child{text-align:left;padding-left:15px}
@@ -61,7 +61,7 @@ header .edition .edition-location,header .edition .edition-year{padding:0;color:
 .knockout-score-row.is-winner .knockout-team-name{font-weight:900}
 .knockout-score-row.is-winner .knockout-team-name:after{content:'●';color:#a8cf2d;font-size:10px;flex:none}
 @media(max-width:600px){
-  .playoff-card>.knockout-score-head,.playoff-card>.knockout-score-row{grid-template-columns:minmax(0,1fr) repeat(3,36px)}
+  .playoff-card>.knockout-score-head,.playoff-card>.knockout-score-row{grid-template-columns:minmax(0,1fr) repeat(var(--score-columns,1),36px)}
   .knockout-score-head>span{font-size:8px;padding:7px 2px}
   .knockout-score-head>span:first-child{padding-left:12px}
   .knockout-team-info{padding:9px 8px 9px 12px}
@@ -69,6 +69,15 @@ header .edition .edition-location,header .edition .edition-year{padding:0;color:
   .knockout-team-info small{font-size:10px}
   .knockout-set-score{font-size:14px}
 }
+
+/* Prize breakdown */
+.prize-breakdown{display:grid;grid-template-columns:180px 1fr;gap:24px;align-items:start;border-top:1px solid var(--line);margin-top:28px;padding-top:22px}
+.prize-breakdown h3{font-size:21px;margin:8px 0 0}
+.prize-breakdown ol{list-style:none;margin:0;padding:0}
+.prize-breakdown li{display:flex;justify-content:space-between;gap:18px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}
+.prize-breakdown li:first-child strong{color:var(--pink)}
+.prize-breakdown strong{white-space:nowrap}
+@media(max-width:560px){.prize-breakdown{grid-template-columns:1fr;gap:12px}.prize-breakdown h3{margin-top:6px}}
 
 /* Five-team groups add a fourth match column; keep the table readable on narrow screens. */
 .standings{min-width:1020px}

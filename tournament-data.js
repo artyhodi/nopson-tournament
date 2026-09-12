@@ -112,17 +112,17 @@ function renderOrderOfPlay() {
     <div class="group-schedules">${renderScheduleGroup('A')}${renderScheduleGroup('B')}</div>
     <h3 class="stage-title">Knockout matches</h3>
     <div class="group-schedules knockout-schedules">
-      <section class="group-agenda" aria-label="Semifinal schedule"><div class="group-title"><h3>Semifinals</h3><span>2:40 PM</span></div><p class="agenda-format">Two sets · Golden Point · Match tiebreak to 7 if tied 1–1 · Times in KST</p><ol class="fixture-list">
+      <section class="group-agenda" aria-label="Semifinal schedule"><div class="group-title"><h3>Semifinals</h3><span>2:40 PM</span></div><p class="agenda-format">One set · Golden Point · Times in KST</p><ol class="fixture-list">
         <li class="agenda-fixture"><div class="agenda-time"><strong>2:40 PM</strong><small>to 3:40 PM</small></div><div class="agenda-match" data-match-id="SF1"><span class="label">Semifinal 1 · Court 2</span><h4>Group A Rank 1 vs Group B Rank 2</h4><p>Winner advances to the final · Loser plays for third place</p></div></li>
         <li class="agenda-fixture"><div class="agenda-time"><strong>2:40 PM</strong><small>to 3:40 PM</small></div><div class="agenda-match" data-match-id="SF2"><span class="label">Semifinal 2 · Court 4</span><h4>Group B Rank 1 vs Group A Rank 2</h4><p>Winner advances to the final · Loser plays for third place</p></div></li>
       </ol></section>
-      <section class="group-agenda" aria-label="Final and third-place schedule"><div class="group-title"><h3>Final &amp; Third Place</h3><span>4:00 PM</span></div><p class="agenda-format">Two sets · Golden Point · Match tiebreak to 7 if tied 1–1 · Times in KST</p><ol class="fixture-list">
+      <section class="group-agenda" aria-label="Final and third-place schedule"><div class="group-title"><h3>Final &amp; Third Place</h3><span>4:00 PM</span></div><p class="agenda-format">Final: best of 3 sets · Third place: 1 set · Golden Point · Times in KST</p><ol class="fixture-list">
         <li class="agenda-fixture"><div class="agenda-time"><strong>4:00 PM</strong><small>to 5:15 PM</small></div><div class="agenda-match" data-match-id="FINAL"><span class="label">Final · Court 2</span><h4>Semifinal 1 Winner vs Semifinal 2 Winner</h4><p>Championship match</p></div></li>
         <li class="agenda-fixture"><div class="agenda-time"><strong>4:00 PM</strong><small>to 5:15 PM</small></div><div class="agenda-match" data-match-id="THIRD"><span class="label">Third-Place Match · Court 4</span><h4>Semifinal 1 Loser vs Semifinal 2 Loser</h4><p>Third-place match</p></div></li>
       </ol></section>
     </div>
     <div class="timing-note"><h3>Timing &amp; breaks</h3><p>Group matches run simultaneously on Court 2 and Court 4. Allow 20 minutes per group-stage match, including warm-up and changeover; 60 minutes for each semifinal; and 75 minutes for the final and third-place match.</p><p>Group stage: 11:00 AM–2:20 PM. Standings confirmation and player rest: 2:20–2:40 PM. Break before the final and third-place match: 3:40–4:00 PM.</p><p><strong>Target finish: 5:15 PM, with buffer until 6:00 PM.</strong> Times are estimates, not match time limits. Later matches may shift if play runs long.</p></div>
-    <p class="section-intro">A1–A5 and B1–B5 are team slots. Group standings determine the semifinal places. Knockout tiebreak is played only if the teams split the first two sets.</p>`;
+    <p class="section-intro">A1–A5 and B1–B5 are team slots. Group standings determine the semifinal places. Semifinals and third place use one set; the Final is best of three.</p>`;
 }
 
 function renderStandings(groupCode) {

@@ -22,7 +22,8 @@ let lastReconciledAt = 0;
 const SCORE_COLUMNS = [
   'match_id', 'stage', 'round_number', 'team_1', 'team_2', 'court',
   'team_1_set_1', 'team_2_set_1', 'team_1_set_2', 'team_2_set_2',
-  'team_1_tiebreak', 'team_2_tiebreak', 'status', 'winner', 'sort_order', 'updated_at',
+  'team_1_set_3', 'team_2_set_3', 'team_1_tiebreak', 'team_2_tiebreak',
+  'status', 'winner', 'sort_order', 'updated_at',
 ].join(',');
 
 function scorePair(match, side, suffix) {
@@ -85,7 +86,7 @@ function rankGroup(groupCode, teams, byId) {
   return { ranked, randomDrawRequired };
 }
 
-function renderKnockoutTeam(element, teamName, scores, isWinner) {
+function renderKnockoutTeam(element, teamName, scores, scoreLabels, isWinner) {
   element.className = `knockout-score-row${isWinner ? ' is-winner' : ''}`;
   element.textContent = '';
   const team = document.createElement('span');
@@ -103,7 +104,7 @@ function renderKnockoutTeam(element, teamName, scores, isWinner) {
   scores.forEach((score, index) => {
     const value = document.createElement('strong');
     value.className = 'knockout-set-score';
-    value.setAttribute('aria-label', index === 2 ? `Tiebreak: ${score}` : `Set ${index + 1}: ${score}`);
+    value.setAttribute('aria-label', `${scoreLabels[index]}: ${score}`);
     value.textContent = score;
     element.append(value);
   });
@@ -163,28 +164,29 @@ function render(rows) {
     const match = byId.get(id);
     if (!match) continue;
 
+    const scoreLabels = id === 'FINAL' ? ['Set 1', 'Set 2', 'Set 3'] : ['Set 1'];
+    const scoreSuffixes = id === 'FINAL' ? ['set_1', 'set_2', 'set_3'] : ['set_1'];
+    card.style.setProperty('--score-columns', scoreLabels.length);
+
     let scoreHead = card.querySelector('.knockout-score-head');
     if (!scoreHead) {
       scoreHead = document.createElement('div');
       scoreHead.className = 'knockout-score-head';
-      scoreHead.innerHTML = '<span>Team / players</span><span>Set 1</span><span>Set 2</span><span>TB</span>';
       const firstSide = [...card.children].find((element) => element.tagName === 'DIV');
       card.insertBefore(scoreHead, firstSide);
     }
+    scoreHead.innerHTML = `<span>Team / players</span>${scoreLabels.map((label) => `<span>${label}</span>`).join('')}`;
 
     const sides = [...card.children].filter(
       (element) => element.tagName === 'DIV' && !element.classList.contains('knockout-score-head')
     );
     sides.forEach((element, side) => {
-      const scores = [
-        scorePair(match, side, 'set_1')[0],
-        scorePair(match, side, 'set_2')[0],
-        scorePair(match, side, 'tiebreak')[0],
-      ];
+      const scores = scoreSuffixes.map((suffix) => scorePair(match, side, suffix)[0]);
       renderKnockoutTeam(
         element,
         side === 0 ? match.team_1 : match.team_2,
         scores,
+        scoreLabels,
         match.status === 'Completed' && match.winner === side + 1
       );
     });
