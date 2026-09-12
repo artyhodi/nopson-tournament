@@ -1,4 +1,7 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm';
+import { groupFixtures, renderTournamentContent, teamMembersByName } from './tournament-data.js';
+
+renderTournamentContent();
 
 const supabaseUrl = 'https://btqoyjaaurkwyojudyei.supabase.co';
 const supabaseKey = 'sb_publishable_v70fZigwPbN_XlcTGywLgg_oHT8PkjN';
@@ -12,7 +15,6 @@ notice.setAttribute('role', 'status');
 notice.textContent = 'Connecting to live scores…';
 document.querySelector('#results .section-heading').after(notice);
 
-const rounds = { 1: [2, 3, 4], 2: [1, 4, 3], 3: [4, 1, 2], 4: [3, 2, 1] };
 let matches = [];
 let hasSubscribed = false;
 let lastReconciledAt = 0;
@@ -83,17 +85,6 @@ function rankGroup(groupCode, teams, byId) {
   return { ranked, randomDrawRequired };
 }
 
-const TEAM_MEMBERS = {
-  'NOPSON TEAM': 'Lia 🇮🇩 · Sony 🇮🇩',
-  'SJ TEAM': 'Sowoon 🇰🇷 · Jaehwan 🇰🇷',
-  'LOOFAH TEAM': 'Fati 🇰🇷 · Lucas 🇰🇷',
-  '은아재선 TEAM': '류은아 🇰🇷 · 이재선 🇰🇷',
-  'KILLER TEAM': 'Joe 🇰🇷 · Anna 🇰🇷',
-  'RAWR TEAM': 'Susy 🇲🇽 · Juma 🇦🇪',
-  'DS TEAM': 'Daniel 🇪🇸 · Sharon 🇰🇷',
-  'ML TEAM': 'Matt 🇺🇸 · Little 🇹🇭',
-};
-
 function renderKnockoutTeam(element, teamName, scores, isWinner) {
   element.className = `knockout-score-row${isWinner ? ' is-winner' : ''}`;
   element.textContent = '';
@@ -103,9 +94,9 @@ function renderKnockoutTeam(element, teamName, scores, isWinner) {
   name.className = 'knockout-team-name';
   name.textContent = teamName;
   team.append(name);
-  if (TEAM_MEMBERS[teamName]) {
+  if (teamMembersByName[teamName]) {
     const members = document.createElement('small');
-    members.textContent = TEAM_MEMBERS[teamName];
+    members.textContent = teamMembersByName[teamName];
     team.append(members);
   }
   element.append(team);
@@ -126,11 +117,12 @@ function render(rows) {
     const slot = row.querySelector('.slot-badge').textContent.trim();
     const group = slot[0], number = Number(slot[1]);
     let won = 0, lost = 0, gamesFor = 0, gamesAgainst = 0;
-    const entries = rounds[number].map((opponent) => {
-      const id = `${group}${Math.min(number, opponent)}-${group}${Math.max(number, opponent)}`;
-      const match = byId.get(id);
+    const entries = groupFixtures[group]
+      .filter((fixture) => fixture.team1.slot === slot || fixture.team2.slot === slot)
+      .map((fixture) => {
+      const match = byId.get(fixture.id);
       if (!match) return null;
-      const side = number < opponent ? 0 : 1;
+      const side = fixture.team1.slot === slot ? 0 : 1;
       const scores = scorePair(match, side, 'set_1');
       if (match.status === 'Completed') {
         const isWinner = match.winner === side + 1;
@@ -263,4 +255,3 @@ document.addEventListener('visibilitychange', () => {
     loadScores().catch(() => {});
   }
 });
-

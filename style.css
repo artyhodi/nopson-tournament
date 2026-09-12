@@ -69,3 +69,6 @@ header .edition .edition-location,header .edition .edition-year{padding:0;color:
   .knockout-team-info small{font-size:10px}
   .knockout-set-score{font-size:14px}
 }
+
+/* Five-team groups add a fourth match column; keep the table readable on narrow screens. */
+.standings{min-width:1020px}

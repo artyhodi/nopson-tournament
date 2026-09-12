@@ -2,7 +2,7 @@
 
 Static tournament website for 19 September 2026 at Mmove Padel, Ipark Yongsan, Seoul.
 
-Includes overview, qualifying groups, separate schedules for Courts 2 and 4, knockout brackets, and group results initialized to zero.
+Includes an overview, two five-team group-stage draws, separate schedules for Courts 2 and 4, live standings, and an automatically populated knockout bracket.
 
 ## Run locally
 
@@ -10,15 +10,18 @@ No build or dependencies required. Run `python -m http.server 8000` in this fold
 
 ## Files
 
-- `index.html`: event details, fixtures and standings
+- `index.html`: page shell and event overview
+- `tournament-data.js`: teams, players, groups, fixtures, schedule and generated tournament sections
 - `style.css`: responsive styling
 - `app.js`: accessible tab navigation
+- `live-scores.js`: Supabase scores, standings and knockout rendering
+- `score-admin.html` / `score-admin.js`: authenticated score-entry interface
 - `nopson-logo.svg`: self-contained logo
 
 ## GitHub Pages
 
-Files are at the root. Configure Pages to deploy from `main` and `/ (root)` when ready to publish. Hosting is not enabled by this upload.
+Files are deployed from `main` and `/ (root)` at `padel.nopsoncapital.com`.
 
 ## Updates
 
-Edit `index.html` to update teams, times and scores. Groups are provisional, times are estimates, and results are placeholders. Scores are updated manually; there is no live scoring backend.
+Edit `tournament-data.js` to update teams, groups, fixtures and displayed times. Keep the matching Supabase fixture rows synchronized. Approved scorekeepers update scores through `score-admin.html`; Supabase derives winners and advances knockout participants automatically.

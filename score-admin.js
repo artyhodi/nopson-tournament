@@ -11,7 +11,7 @@ const authMessage = document.querySelector('#auth-message');
 const editorMessage = document.querySelector('#editor-message');
 const matchList = document.querySelector('#match-list');
 const retryLoadButton = document.querySelector('#retry-load');
-const MATCH_CACHE_KEY = 'nopson-scorekeeper-matches-v1';
+const MATCH_CACHE_KEY = 'nopson-scorekeeper-matches-v2';
 let matches = [];
 let activeStage = 'all';
 let shownSession = 'unknown';
@@ -216,4 +216,3 @@ supabase.auth.onAuthStateChange((_event, session) => {
     });
   }, 0);
 });
-
