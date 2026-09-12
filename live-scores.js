@@ -151,7 +151,10 @@ function render(rows) {
   for (const [groupCode, group] of Object.entries(standingsByGroup)) {
     const result = rankGroup(groupCode, group, byId);
     result.ranked.forEach(({ row }) => row.parentElement.append(row));
-    if (result.randomDrawRequired) randomDrawGroups.push(`Group ${groupCode}`);
+    const groupComplete = groupFixtures[groupCode].every(
+      (fixture) => byId.get(fixture.id)?.status === 'Completed'
+    );
+    if (groupComplete && result.randomDrawRequired) randomDrawGroups.push(`Group ${groupCode}`);
   }
 
   for (const card of document.querySelectorAll('.playoff-card')) {
