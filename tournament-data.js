@@ -15,10 +15,10 @@ export const teams = [
   { slot: 'A2', name: 'SO LUCKY JO TEAM', members: [{ name: 'Sowoon', country: 'KR' }, { name: 'Jaehwan', country: 'KR' }] },
   { slot: 'A3', name: 'ONE TEAM', members: [{ name: 'Morrison', country: 'KR' }, { name: 'Wan Soon', country: 'TH' }] },
   { slot: 'A4', name: 'LOOFAH 🧽', members: [{ name: 'Lucas', country: 'FR' }, { name: 'Fati', country: 'KR' }] },
-  { slot: 'A5', name: 'MaFia TEAM', members: [{ name: 'Matt', country: 'US' }, { name: 'Sofia', country: 'UA' }] },
+  { slot: 'A5', name: 'MAFIA TEAM', members: [{ name: 'Matt', country: 'US' }, { name: 'Sofia', country: 'UA' }] },
   { slot: 'B1', name: 'KILLER TEAM', members: [{ name: 'Joe', country: 'KR' }, { name: 'Anna', country: 'KR' }] },
   { slot: 'B2', name: 'RAWRR TEAM', members: [{ name: 'Susana', country: 'MX' }, { name: 'Jumma', country: 'AE' }] },
-  { slot: 'B3', name: 'TITI & DIEGO', members: [{ name: 'Titi', country: 'PA' }, { name: 'Diego', country: 'PA' }] },
+  { slot: 'B3', name: 'PANAMA TEAM', members: [{ name: 'Titi', country: 'PA' }, { name: 'Diego', country: 'PA' }] },
   { slot: 'B4', name: 'JS TEAM', members: [{ name: 'Jay', country: 'KR' }, { name: 'Sharon', country: 'KR' }] },
   { slot: 'B5', name: 'RALLÉ TEAM', members: [{ name: 'Little', country: 'TH' }, { name: 'Fond', country: 'TH' }] },
 ];
