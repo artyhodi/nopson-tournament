@@ -13,7 +13,7 @@ const flagData = {
 export const teams = [
   { slot: 'A1', name: 'NOPSON TEAM', members: [{ name: 'Lia', country: 'ID' }, { name: 'Sony', country: 'ID' }] },
   { slot: 'A2', name: 'SO LUCKY JO TEAM', members: [{ name: 'Sowoon', country: 'KR' }, { name: 'Jaehwan', country: 'KR' }] },
-  { slot: 'A3', name: 'EUNA JAESUN TEAM', members: [{ name: 'Euna Ryu', country: 'KR' }, { name: 'Jaesun Lee', country: 'KR' }] },
+  { slot: 'A3', name: 'ONE TEAM', members: [{ name: 'Morrison', country: 'KR' }, { name: 'Wan Soon', country: 'TH' }] },
   { slot: 'A4', name: 'LOOFAH 🧽', members: [{ name: 'Lucas', country: 'FR' }, { name: 'Fati', country: 'KR' }] },
   { slot: 'A5', name: 'MaFia TEAM', members: [{ name: 'Matt', country: 'US' }, { name: 'Sofia', country: 'UA' }] },
   { slot: 'B1', name: 'KILLER TEAM', members: [{ name: 'Joe', country: 'KR' }, { name: 'Anna', country: 'KR' }] },
