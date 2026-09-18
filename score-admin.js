@@ -6,8 +6,10 @@ const supabase = createClient(
 );
 
 const authPanel = document.querySelector('#auth-panel');
+const recoveryPanel = document.querySelector('#recovery-panel');
 const editorPanel = document.querySelector('#editor-panel');
 const authMessage = document.querySelector('#auth-message');
+const recoveryMessage = document.querySelector('#recovery-message');
 const editorMessage = document.querySelector('#editor-message');
 const matchList = document.querySelector('#match-list');
 const retryLoadButton = document.querySelector('#retry-load');
@@ -15,6 +17,7 @@ const MATCH_CACHE_KEY = 'nopson-scorekeeper-matches-v3';
 let matches = [];
 let activeStage = 'all';
 let shownSession = 'unknown';
+let recoveringPassword = false;
 
 function setMessage(element, message, error = false) {
   element.textContent = message;
@@ -199,6 +202,41 @@ document.querySelector('#sign-up').addEventListener('click', async () => {
   setMessage(authMessage, error ? error.message : 'Account created. Check your email if confirmation is required.', Boolean(error));
 });
 
+document.querySelector('#reset-password').addEventListener('click', async () => {
+  const email = document.querySelector('#email').value.trim().toLowerCase();
+  if (!email) {
+    setMessage(authMessage, 'Enter your email first.', true);
+    return;
+  }
+  setMessage(authMessage, 'Sending reset email…');
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: 'https://padel.nopsoncapital.com/score-admin.html',
+  });
+  setMessage(authMessage, error ? error.message : 'Password reset email sent. Check your inbox.', Boolean(error));
+});
+
+document.querySelector('#recovery-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const password = document.querySelector('#new-password').value;
+  if (password.length < 8) {
+    setMessage(recoveryMessage, 'Use at least eight characters.', true);
+    return;
+  }
+  setMessage(recoveryMessage, 'Updating password…');
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) {
+    setMessage(recoveryMessage, error.message, true);
+    return;
+  }
+  recoveringPassword = false;
+  recoveryPanel.hidden = true;
+  setMessage(recoveryMessage, '');
+  shownSession = 'unknown';
+  const { data: { session } } = await supabase.auth.getSession();
+  await showSession(session);
+  setMessage(editorMessage, 'Password updated. You are signed in.');
+});
+
 document.querySelector('#sign-out').addEventListener('click', () => supabase.auth.signOut());
 document.querySelectorAll('.filter-button').forEach(button => button.addEventListener('click', () => {
   activeStage = button.dataset.stage;
@@ -208,10 +246,18 @@ document.querySelectorAll('.filter-button').forEach(button => button.addEventLis
 
 retryLoadButton.addEventListener('click', () => loadMatches());
 
-supabase.auth.onAuthStateChange((_event, session) => {
+supabase.auth.onAuthStateChange((event, session) => {
   // Supabase calls inside this callback can deadlock the auth client.
   // Defer all database work until the callback has returned.
   setTimeout(() => {
+    if (event === 'PASSWORD_RECOVERY') {
+      recoveringPassword = true;
+      authPanel.hidden = true;
+      editorPanel.hidden = true;
+      recoveryPanel.hidden = false;
+      return;
+    }
+    if (recoveringPassword) return;
     showSession(session).catch(() => {
       setMessage(editorMessage, 'Could not initialize the scorekeeper. Try again.', true);
       retryLoadButton.hidden = false;
