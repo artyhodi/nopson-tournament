@@ -27,7 +27,7 @@ const PHOTO_EXTENSIONS = new Map([
   ['image/png', 'png'],
   ['image/webp', 'webp'],
 ]);
-const PHOTO_CATEGORY_LABELS = { winners: 'Winners', podium: 'Podium', moments: 'Tournament moments' };
+const PHOTO_CATEGORY_LABELS = { winners: 'Winners', podium: 'Podium', moments: 'From the Court' };
 let matches = [];
 let photos = [];
 let activeStage = 'all';

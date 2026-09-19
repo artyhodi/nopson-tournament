@@ -12,7 +12,7 @@ const morePhotosHeading = document.querySelector('#more-photos-heading');
 const categories = [
   { id: 'winners', title: 'Winners', label: 'CHAMPIONS' },
   { id: 'podium', title: 'Podium', label: 'TOP THREE' },
-  { id: 'moments', title: 'Tournament moments', label: 'FROM THE COURT' },
+  { id: 'moments', title: 'From the Court', label: '' },
 ];
 
 function photoUrl(path) {
@@ -28,7 +28,14 @@ function photoCard(photo, featured = false) {
   image.alt = photo.caption || `${categories.find((item) => item.id === photo.category)?.title || 'Tournament'} photo`;
   image.loading = featured ? 'eager' : 'lazy';
   image.decoding = 'async';
-  figure.append(image);
+  const link = document.createElement('a');
+  link.className = 'photo-full-link';
+  link.href = photoUrl(photo.storage_path);
+  link.target = '_blank';
+  link.rel = 'noopener';
+  link.setAttribute('aria-label', `View ${image.alt} at full resolution`);
+  link.append(image);
+  figure.append(link);
 
   if (photo.caption) {
     const caption = document.createElement('figcaption');
@@ -56,7 +63,9 @@ function renderPhotos(photos) {
     section.className = `gallery-group gallery-${category.id}`;
     const heading = document.createElement('div');
     heading.className = 'gallery-group-heading';
-    heading.innerHTML = `<span class="label">${category.label}</span><h3>${category.title}</h3>`;
+    heading.innerHTML = category.label
+      ? `<span class="label">${category.label}</span><h3>${category.title}</h3>`
+      : `<h3>${category.title}</h3>`;
     const grid = document.createElement('div');
     grid.className = 'photo-grid';
     categoryPhotos.forEach((photo, index) => grid.append(photoCard(photo, category.id === 'winners' && index === 0)));
