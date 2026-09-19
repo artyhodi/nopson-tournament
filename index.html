@@ -7,23 +7,29 @@
   <meta name="description" content="Nopson Tournament. September 19, 2026 at Mmove Padel, Ipark Yongsan. Overview, draws, order of play, results and tournament photos.">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://btqoyjaaurkwyojudyei.supabase.co" crossorigin>
-  <link rel="stylesheet" href="style.css?v=20260919-photo-gallery">
+  <link rel="stylesheet" href="style.css?v=20260919-nav-fix">
 </head>
 <body>
   <header>
-    <a class="nopson-logo" href="#overview" aria-label="Nopson Tournament home"><img src="nopson-logo.svg" alt="Nopson" width="250" height="74"></a>
+    <a class="nopson-logo" href="#photos" aria-label="Nopson Tournament home"><img src="nopson-logo.svg" alt="Nopson" width="250" height="74"></a>
     <span class="edition"><span class="edition-location">SEOUL, KOREA</span><span class="edition-divider" aria-hidden="true"> / </span><span class="edition-year">2026</span></span>
   </header>
   <main>
     <section class="poster-hero" aria-label="Nopson Tournament official poster"><img src="assets/nopson-tournament-poster.webp?v=20260914" alt="Nopson Tournament: 19 September 2026, 11 AM at Mmove Padel, Ipark Yongsan. ₩1,000,000 cash prize." width="905" height="1280" fetchpriority="high"></section>
     <nav class="tabs" role="tablist" aria-label="Tournament sections">
-      <button id="tab-overview" role="tab" aria-selected="true" aria-controls="overview" data-tab="overview">Overview</button>
+      <button id="tab-photos" role="tab" aria-selected="true" aria-controls="photos" data-tab="photos">Photos</button>
+      <button id="tab-overview" role="tab" aria-selected="false" aria-controls="overview" data-tab="overview" tabindex="-1">Overview</button>
       <button id="tab-draws" role="tab" aria-selected="false" aria-controls="draws" data-tab="draws" tabindex="-1">Draws</button>
       <button id="tab-order-of-play" role="tab" aria-selected="false" aria-controls="order-of-play" data-tab="order-of-play" tabindex="-1">Order of play</button>
       <button id="tab-results" role="tab" aria-selected="false" aria-controls="results" data-tab="results" tabindex="-1">Results</button>
-      <button id="tab-photos" role="tab" aria-selected="false" aria-controls="photos" data-tab="photos" tabindex="-1">Photos</button>
     </nav>
-    <section id="overview" role="tabpanel" aria-labelledby="tab-overview">
+    <section id="photos" role="tabpanel" aria-labelledby="tab-photos">
+      <div class="section-heading"><h2>Tournament photos</h2><span class="tag">19.09.2026</span></div>
+      <p class="section-intro">Winners, podium moments and memories from the court.</p>
+      <p id="photo-gallery-status" class="gallery-status" role="status">Loading photos…</p>
+      <div id="photo-gallery" class="photo-gallery" aria-live="polite"></div>
+    </section>
+    <section id="overview" role="tabpanel" aria-labelledby="tab-overview" hidden>
       <div class="section-heading"><h2>SMASH YOU LATER TOURNAMENT</h2><span class="tag">FIX MIX</span></div>
       <div class="overview-grid">
         <div class="overview-details">
@@ -52,15 +58,9 @@
     <section id="draws" role="tabpanel" aria-labelledby="tab-draws" hidden></section>
     <section id="order-of-play" role="tabpanel" aria-labelledby="tab-order-of-play" hidden></section>
     <section id="results" role="tabpanel" aria-labelledby="tab-results" hidden></section>
-    <section id="photos" role="tabpanel" aria-labelledby="tab-photos" hidden>
-      <div class="section-heading"><h2>Tournament photos</h2><span class="tag">19.09.2026</span></div>
-      <p class="section-intro">Winners, podium moments and memories from the court.</p>
-      <p id="photo-gallery-status" class="gallery-status" role="status">Loading photos…</p>
-      <div id="photo-gallery" class="photo-gallery" aria-live="polite"></div>
-    </section>
   </main>
   <footer>
-    <a class="nopson-logo" href="#overview" aria-label="Nopson Tournament home"><img src="nopson-logo.svg" alt="Nopson" width="250" height="74"></a>
+    <a class="nopson-logo" href="#photos" aria-label="Nopson Tournament home"><img src="nopson-logo.svg" alt="Nopson" width="250" height="74"></a>
     <p>19.09.2026 <span>/</span> MMOVE PADEL, IPARK YONGSAN</p>
     <span class="copyright">© 2026 Nopson Tournament. All rights reserved.</span>
   </footer>
