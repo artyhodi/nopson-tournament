@@ -62,6 +62,7 @@ function rankGroup(groupCode, teams, byId) {
 
   const ranked = [];
   let randomDrawRequired = false;
+  let headToHeadPending = false;
   [...byWins.keys()].sort((a, b) => b - a).forEach((wins) => {
     const tied = byWins.get(wins);
     if (tied.length === 2) {
@@ -74,16 +75,21 @@ function rankGroup(groupCode, teams, byId) {
           : Number(headToHead.match_id[4]);
         tied.sort((a, b) => Number(b.slotNumber === winningSlot) - Number(a.slotNumber === winningSlot));
       } else {
-        tied.sort(fallbackTieCompare);
+        headToHeadPending = true;
+        tied.sort((a, b) => a.slotNumber - b.slotNumber);
       }
     } else if (tied.length >= 3) {
       tied.sort(fallbackTieCompare);
-      randomDrawRequired ||= tied.some((team, index) => index > 0 && finalTieEqual(tied[index - 1], team));
+      randomDrawRequired ||= tied.some((team, index) => (
+        index > 0
+        && ranked.length + index <= 2
+        && finalTieEqual(tied[index - 1], team)
+      ));
     }
     ranked.push(...tied);
   });
 
-  return { ranked, randomDrawRequired };
+  return { ranked, randomDrawRequired, headToHeadPending };
 }
 
 function renderKnockoutTeam(element, teamName, scores, scoreLabels, isWinner) {
@@ -149,6 +155,7 @@ function render(rows) {
   }
 
   const randomDrawGroups = [];
+  const pendingHeadToHeadGroups = [];
   for (const [groupCode, group] of Object.entries(standingsByGroup)) {
     const result = rankGroup(groupCode, group, byId);
     result.ranked.forEach(({ row }) => row.parentElement.append(row));
@@ -156,6 +163,7 @@ function render(rows) {
       (fixture) => byId.get(fixture.id)?.status === 'Completed'
     );
     if (groupComplete && result.randomDrawRequired) randomDrawGroups.push(`Group ${groupCode}`);
+    if (!groupComplete && result.headToHeadPending) pendingHeadToHeadGroups.push(`Group ${groupCode}`);
   }
 
   for (const card of document.querySelectorAll('.playoff-card')) {
@@ -211,7 +219,10 @@ function render(rows) {
   const drawNotice = randomDrawGroups.length
     ? ` · Organizer-supervised random draw required: ${randomDrawGroups.join(', ')}`
     : '';
-  notice.textContent = `Live scores connected · Last change ${new Date(latest).toLocaleString('en-GB', { timeZone: 'Asia/Seoul' })} KST${drawNotice}`;
+  const provisionalNotice = pendingHeadToHeadGroups.length
+    ? ` · Provisional order — head-to-head pending: ${pendingHeadToHeadGroups.join(', ')}`
+    : '';
+  notice.textContent = `Live scores connected · Last change ${new Date(latest).toLocaleString('en-GB', { timeZone: 'Asia/Seoul' })} KST${provisionalNotice}${drawNotice}`;
 }
 
 async function loadScores() {
