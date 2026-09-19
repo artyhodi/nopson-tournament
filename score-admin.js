@@ -13,8 +13,23 @@ const recoveryMessage = document.querySelector('#recovery-message');
 const editorMessage = document.querySelector('#editor-message');
 const matchList = document.querySelector('#match-list');
 const retryLoadButton = document.querySelector('#retry-load');
+const photoUploadForm = document.querySelector('#photo-upload-form');
+const photoFiles = document.querySelector('#photo-files');
+const photoCategory = document.querySelector('#photo-category');
+const photoCaption = document.querySelector('#photo-caption');
+const photoUploadMessage = document.querySelector('#photo-upload-message');
+const photoAdminList = document.querySelector('#photo-admin-list');
 const MATCH_CACHE_KEY = 'nopson-scorekeeper-matches-v3';
+const PHOTO_BUCKET = 'tournament-photos';
+const MAX_PHOTO_BYTES = 12 * 1024 * 1024;
+const PHOTO_EXTENSIONS = new Map([
+  ['image/jpeg', 'jpg'],
+  ['image/png', 'png'],
+  ['image/webp', 'webp'],
+]);
+const PHOTO_CATEGORY_LABELS = { winners: 'Winners', podium: 'Podium', moments: 'Tournament moments' };
 let matches = [];
+let photos = [];
 let activeStage = 'all';
 let shownSession = 'unknown';
 let recoveringPassword = false;
@@ -122,6 +137,133 @@ async function loadMatches() {
   retryLoadButton.hidden = permissionError;
 }
 
+function publicPhotoUrl(path) {
+  return supabase.storage.from(PHOTO_BUCKET).getPublicUrl(path).data.publicUrl;
+}
+
+function renderAdminPhotos() {
+  photoAdminList.replaceChildren();
+  if (!photos.length) {
+    const empty = document.createElement('p');
+    empty.className = 'photo-admin-empty';
+    empty.textContent = 'No photos uploaded yet.';
+    photoAdminList.append(empty);
+    return;
+  }
+
+  for (const photo of photos) {
+    const card = document.createElement('article');
+    card.className = 'photo-admin-card';
+    const image = document.createElement('img');
+    image.src = publicPhotoUrl(photo.storage_path);
+    image.alt = photo.caption || `${PHOTO_CATEGORY_LABELS[photo.category]} photo`;
+    image.loading = 'lazy';
+    const body = document.createElement('div');
+    body.className = 'photo-admin-card-body';
+    const category = document.createElement('strong');
+    category.textContent = PHOTO_CATEGORY_LABELS[photo.category];
+    const caption = document.createElement('small');
+    caption.textContent = photo.caption || 'No caption';
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'remove-photo';
+    remove.dataset.photoId = photo.id;
+    remove.textContent = 'Remove photo';
+    body.append(category, caption, remove);
+    card.append(image, body);
+    photoAdminList.append(card);
+  }
+}
+
+async function loadAdminPhotos() {
+  const { data, error } = await supabase
+    .from('tournament_photos')
+    .select('id, storage_path, category, caption, created_at')
+    .order('created_at', { ascending: false });
+  if (error) {
+    setMessage(photoUploadMessage, 'Could not load the photo gallery.', true);
+    return;
+  }
+  photos = data || [];
+  renderAdminPhotos();
+}
+
+async function uploadPhotos(event) {
+  event.preventDefault();
+  const files = [...photoFiles.files];
+  const invalidFile = files.find((file) => !PHOTO_EXTENSIONS.has(file.type) || file.size > MAX_PHOTO_BYTES);
+  if (!files.length) {
+    setMessage(photoUploadMessage, 'Choose at least one photo.', true);
+    return;
+  }
+  if (invalidFile) {
+    setMessage(photoUploadMessage, 'Use JPG, PNG or WebP photos up to 12 MB each.', true);
+    return;
+  }
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    setMessage(photoUploadMessage, 'Sign in again before uploading photos.', true);
+    return;
+  }
+
+  const submit = photoUploadForm.querySelector('button[type="submit"]');
+  submit.disabled = true;
+  try {
+    for (let index = 0; index < files.length; index += 1) {
+      const file = files[index];
+      setMessage(photoUploadMessage, `Uploading ${index + 1} of ${files.length}…`);
+      const uniquePart = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+      const path = `${session.user.id}/${Date.now()}-${uniquePart}.${PHOTO_EXTENSIONS.get(file.type)}`;
+      const { error: uploadError } = await supabase.storage
+        .from(PHOTO_BUCKET)
+        .upload(path, file, { cacheControl: '31536000', contentType: file.type, upsert: false });
+      if (uploadError) throw uploadError;
+
+      const { error: metadataError } = await supabase.from('tournament_photos').insert({
+        storage_path: path,
+        category: photoCategory.value,
+        caption: photoCaption.value.trim(),
+      });
+      if (metadataError) {
+        await supabase.storage.from(PHOTO_BUCKET).remove([path]);
+        throw metadataError;
+      }
+    }
+    photoUploadForm.reset();
+    await loadAdminPhotos();
+    setMessage(photoUploadMessage, `${files.length} photo${files.length === 1 ? '' : 's'} uploaded.`);
+  } catch (error) {
+    setMessage(photoUploadMessage, error.message || 'Photo upload failed. Try again.', true);
+  } finally {
+    submit.disabled = false;
+  }
+}
+
+async function removePhoto(event) {
+  const button = event.target.closest('.remove-photo');
+  if (!button) return;
+  const photo = photos.find((item) => item.id === button.dataset.photoId);
+  if (!photo || !window.confirm('Remove this photo from the tournament gallery?')) return;
+
+  button.disabled = true;
+  setMessage(photoUploadMessage, 'Removing photo…');
+  const { error: metadataError } = await supabase.from('tournament_photos').delete().eq('id', photo.id);
+  if (metadataError) {
+    setMessage(photoUploadMessage, metadataError.message, true);
+    button.disabled = false;
+    return;
+  }
+
+  const { error: storageError } = await supabase.storage.from(PHOTO_BUCKET).remove([photo.storage_path]);
+  await loadAdminPhotos();
+  setMessage(
+    photoUploadMessage,
+    storageError ? 'Removed from the gallery, but the stored file needs cleanup.' : 'Photo removed.',
+    Boolean(storageError)
+  );
+}
+
 async function saveMatch(event) {
   event.preventDefault();
   const form = event.currentTarget;
@@ -174,10 +316,12 @@ async function showSession(session) {
       renderMatches();
       setMessage(editorMessage, 'Showing saved matches while connecting…');
     }
-    await loadMatches();
+    await Promise.all([loadMatches(), loadAdminPhotos()]);
   } else {
     matches = [];
+    photos = [];
     matchList.innerHTML = '';
+    photoAdminList.replaceChildren();
   }
 }
 
@@ -245,6 +389,8 @@ document.querySelectorAll('.filter-button').forEach(button => button.addEventLis
 }));
 
 retryLoadButton.addEventListener('click', () => loadMatches());
+photoUploadForm.addEventListener('submit', uploadPhotos);
+photoAdminList.addEventListener('click', removePhoto);
 
 supabase.auth.onAuthStateChange((event, session) => {
   // Supabase calls inside this callback can deadlock the auth client.
