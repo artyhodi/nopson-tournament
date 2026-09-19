@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Nopson Tournament · 19 September 2026</title>
-  <meta name="description" content="Nopson Tournament. September 19, 2026 at Mmove Padel, Ipark Yongsan. Overview, draws, order of play and results.">
+  <meta name="description" content="Nopson Tournament. September 19, 2026 at Mmove Padel, Ipark Yongsan. Overview, draws, order of play, results and tournament photos.">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://btqoyjaaurkwyojudyei.supabase.co" crossorigin>
-  <link rel="stylesheet" href="style.css?v=20260912-match-format">
+  <link rel="stylesheet" href="style.css?v=20260919-photo-gallery">
 </head>
 <body>
   <header>
@@ -21,6 +21,7 @@
       <button id="tab-draws" role="tab" aria-selected="false" aria-controls="draws" data-tab="draws" tabindex="-1">Draws</button>
       <button id="tab-order-of-play" role="tab" aria-selected="false" aria-controls="order-of-play" data-tab="order-of-play" tabindex="-1">Order of play</button>
       <button id="tab-results" role="tab" aria-selected="false" aria-controls="results" data-tab="results" tabindex="-1">Results</button>
+      <button id="tab-photos" role="tab" aria-selected="false" aria-controls="photos" data-tab="photos" tabindex="-1">Photos</button>
     </nav>
     <section id="overview" role="tabpanel" aria-labelledby="tab-overview">
       <div class="section-heading"><h2>SMASH YOU LATER TOURNAMENT</h2><span class="tag">FIX MIX</span></div>
@@ -51,6 +52,12 @@
     <section id="draws" role="tabpanel" aria-labelledby="tab-draws" hidden></section>
     <section id="order-of-play" role="tabpanel" aria-labelledby="tab-order-of-play" hidden></section>
     <section id="results" role="tabpanel" aria-labelledby="tab-results" hidden></section>
+    <section id="photos" role="tabpanel" aria-labelledby="tab-photos" hidden>
+      <div class="section-heading"><h2>Tournament photos</h2><span class="tag">19.09.2026</span></div>
+      <p class="section-intro">Winners, podium moments and memories from the court.</p>
+      <p id="photo-gallery-status" class="gallery-status" role="status">Loading photos…</p>
+      <div id="photo-gallery" class="photo-gallery" aria-live="polite"></div>
+    </section>
   </main>
   <footer>
     <a class="nopson-logo" href="#overview" aria-label="Nopson Tournament home"><img src="nopson-logo.svg" alt="Nopson" width="250" height="74"></a>
@@ -59,5 +66,6 @@
   </footer>
   <script src="app.js"></script>
   <script type="module" src="live-scores.js?v=20260919-ranking-fix"></script>
+  <script type="module" src="photos.js?v=20260919-photo-gallery"></script>
 </body>
 </html>
