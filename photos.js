@@ -8,6 +8,7 @@ const supabase = createClient(
 const PHOTO_BUCKET = 'tournament-photos';
 const gallery = document.querySelector('#photo-gallery');
 const status = document.querySelector('#photo-gallery-status');
+const morePhotosHeading = document.querySelector('#more-photos-heading');
 const categories = [
   { id: 'winners', title: 'Winners', label: 'CHAMPIONS' },
   { id: 'podium', title: 'Podium', label: 'TOP THREE' },
@@ -40,13 +41,12 @@ function photoCard(photo, featured = false) {
 function renderPhotos(photos) {
   gallery.replaceChildren();
   if (!photos.length) {
-    const empty = document.createElement('div');
-    empty.className = 'photo-gallery-empty';
-    empty.innerHTML = '<span class="big-number">COMING SOON</span><h3>Photos after the final.</h3><p>Winner portraits, podium photos and tournament moments will appear here.</p>';
-    gallery.append(empty);
+    morePhotosHeading.hidden = true;
     status.textContent = '';
     return;
   }
+
+  morePhotosHeading.hidden = false;
 
   for (const category of categories) {
     const categoryPhotos = photos.filter((photo) => photo.category === category.id);
@@ -73,7 +73,8 @@ async function loadPhotos() {
     .order('created_at', { ascending: false });
 
   if (error) {
-    status.textContent = 'Photos are temporarily unavailable.';
+    status.textContent = '';
+    morePhotosHeading.hidden = true;
     gallery.replaceChildren();
     return;
   }

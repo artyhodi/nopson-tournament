@@ -7,7 +7,7 @@
   <meta name="description" content="Nopson Tournament. September 19, 2026 at Mmove Padel, Ipark Yongsan. Overview, draws, order of play, results and tournament photos.">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://btqoyjaaurkwyojudyei.supabase.co" crossorigin>
-  <link rel="stylesheet" href="style.css?v=20260919-nav-fix">
+  <link rel="stylesheet" href="style.css?v=20260919-podium">
 </head>
 <body>
   <header>
@@ -24,8 +24,38 @@
       <button id="tab-results" role="tab" aria-selected="false" aria-controls="results" data-tab="results" tabindex="-1">Results</button>
     </nav>
     <section id="photos" role="tabpanel" aria-labelledby="tab-photos">
-      <div class="section-heading"><h2>Tournament photos</h2><span class="tag">19.09.2026</span></div>
-      <p class="section-intro">Winners, podium moments and memories from the court.</p>
+      <div class="section-heading"><h2>2026 Podium</h2><span class="tag">19.09.2026</span></div>
+      <p class="section-intro">Congratulations to the winners of the Smash You Later Tournament.</p>
+      <div class="podium-showcase">
+        <article class="podium-card podium-champion">
+          <figure><img src="assets/podium/2026-champions-killer-team.webp" alt="KILLER TEAM, Joe and Anna, receiving the first-place prize" width="1152" height="1536" fetchpriority="high"></figure>
+          <div class="podium-card-copy">
+            <span class="podium-place">01 / CHAMPIONS</span>
+            <h3>KILLER TEAM</h3>
+            <p>Joe &amp; Anna <span aria-label="South Korea">🇰🇷</span></p>
+            <strong>₩500,000 PRIZE</strong>
+          </div>
+        </article>
+        <article class="podium-card">
+          <figure><img src="assets/podium/2026-runner-up-ralle-team.webp" alt="RALLÉ TEAM, Little and Fond, receiving the second-place prize" width="1152" height="1536" loading="lazy"></figure>
+          <div class="podium-card-copy">
+            <span class="podium-place">02 / RUNNER-UP</span>
+            <h3>RALLÉ TEAM</h3>
+            <p>Little &amp; Fond <span aria-label="Thailand">🇹🇭</span></p>
+            <strong>₩350,000 PRIZE</strong>
+          </div>
+        </article>
+        <article class="podium-card">
+          <figure><img src="assets/podium/2026-third-place-mafia-team.webp" alt="MAFIA TEAM, Matt and Sofia, receiving the third-place prize" width="1152" height="1536" loading="lazy"></figure>
+          <div class="podium-card-copy">
+            <span class="podium-place">03 / THIRD PLACE</span>
+            <h3>MAFIA TEAM</h3>
+            <p>Matt &amp; Sofia <span aria-label="United States and Ukraine">🇺🇸 🇺🇦</span></p>
+            <strong>₩150,000 PRIZE</strong>
+          </div>
+        </article>
+      </div>
+      <div id="more-photos-heading" class="gallery-more-heading" hidden><span class="label">MORE FROM THE DAY</span><h3>Tournament gallery</h3></div>
       <p id="photo-gallery-status" class="gallery-status" role="status">Loading photos…</p>
       <div id="photo-gallery" class="photo-gallery" aria-live="polite"></div>
     </section>
@@ -66,6 +96,6 @@
   </footer>
   <script src="app.js"></script>
   <script type="module" src="live-scores.js?v=20260919-ranking-fix"></script>
-  <script type="module" src="photos.js?v=20260919-photo-gallery"></script>
+  <script type="module" src="photos.js?v=20260919-podium"></script>
 </body>
 </html>
