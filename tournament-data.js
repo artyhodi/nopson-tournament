@@ -58,7 +58,7 @@ export const groupFixtures = Object.fromEntries(Object.keys(groups).map((groupCo
 
 export const teamMembersByName = Object.fromEntries(teams.map((team) => [
   team.name,
-  team.members.map((member) => `${member.name}${member.country ? ` ${flagData[member.country][0]}` : ''}`).join(' · '),
+  membersMarkup(team),
 ]));
 
 function flagMarkup(country) {
