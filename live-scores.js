@@ -1,5 +1,5 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm';
-import { groupFixtures, renderTournamentContent, teamMembersByName } from './tournament-data.js?v=20260914-team-names';
+import { groupFixtures, renderTournamentContent, teamMembersByName } from './tournament-data.js?v=20260920-flags';
 
 renderTournamentContent();
 
@@ -103,7 +103,7 @@ function renderKnockoutTeam(element, teamName, scores, scoreLabels, isWinner) {
   team.append(name);
   if (teamMembersByName[teamName]) {
     const members = document.createElement('small');
-    members.textContent = teamMembersByName[teamName];
+    members.innerHTML = teamMembersByName[teamName];
     team.append(members);
   }
   element.append(team);
